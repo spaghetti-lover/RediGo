@@ -53,6 +53,7 @@ func NewWorker(id int, jobQueue chan Job) *Worker {
 
 func (w *Worker) Start() {
 	go func() {
+		// channel is thread-safe and blocking
 		for job := range w.jobQueue {
 			log.Printf("worker %d is processing from %s", w.id, job.conn.RemoteAddr())
 			handleConnection(job.conn)
