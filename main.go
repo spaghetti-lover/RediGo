@@ -99,7 +99,7 @@ func main() {
 
 	defer listener.Close()
 
-	pool := NewPool(2)
+	pool := NewPool(3)
 	pool.Start()
 	for {
 		// conn == socket == communication channel
