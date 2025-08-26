@@ -7,19 +7,20 @@ import (
 	"syscall"
 
 	"github.com/spaghetti-lover/multithread-redis/internal/config"
+	"github.com/spaghetti-lover/multithread-redis/internal/core"
 	"github.com/spaghetti-lover/multithread-redis/internal/core/iomux"
 )
 
-func readCommand(fd int) (string, error) {
+func readCommand(fd int) (*core.Command, error) {
 	var buf = make([]byte, 512)
 	n, err := syscall.Read(fd, buf)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if n == 0 {
-		return "", io.EOF
+		return nil, io.EOF
 	}
-	return string(buf[:n]), nil
+	return core.ParseCmd(buf)
 }
 
 func respond(data string, fd int) error {
@@ -93,7 +94,6 @@ func RunIoMultiplexingServer() {
 				}
 			} else {
 				cmd, err := readCommand(events[i].Fd)
-				// log.Println("command: ", cmd)
 				if err != nil {
 					if err == io.EOF || err == syscall.ECONNRESET {
 						log.Println("client disconnected")
@@ -103,8 +103,8 @@ func RunIoMultiplexingServer() {
 					log.Println("read error:", err)
 					continue
 				}
-				if err = respond(cmd, events[i].Fd); err != nil {
-					log.Println("err write:", err)
+				if err = core.ExecuteAndResponse(cmd, events[i].Fd); err != nil {
+					log.Println("err write: ", err)
 				}
 			}
 		}
