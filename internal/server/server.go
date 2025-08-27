@@ -5,8 +5,10 @@ import (
 	"log"
 	"net"
 	"syscall"
+	"time"
 
 	"github.com/spaghetti-lover/multithread-redis/internal/config"
+	"github.com/spaghetti-lover/multithread-redis/internal/constant"
 	"github.com/spaghetti-lover/multithread-redis/internal/core"
 	"github.com/spaghetti-lover/multithread-redis/internal/core/iomux"
 )
@@ -67,7 +69,13 @@ func RunIoMultiplexingServer() {
 	}
 
 	var events = make([]iomux.Event, config.MaxConnection)
+	var lastActiveExpireExecTime = time.Now()
 	for {
+		// check last execution time and call if it is more than 100ms ago.
+		if time.Now().After(lastActiveExpireExecTime.Add(constant.ActiveExpireFrequency)) {
+			core.ActiveDeleteExpiredKeys()
+			lastActiveExpireExecTime = time.Now()
+		}
 		// wait for file descriptors in the monitoring list to be ready for I/O
 		// it is a blocking call.
 		events, err = ioMultiplexer.Wait()
