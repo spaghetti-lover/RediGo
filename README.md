@@ -127,6 +127,7 @@ GET key
 - [x] Count-Min Sketch
 - [x] Bloom Filter
 - [x] Approximated LRU
+- [ ] Implement EXPIRE, DEL, EXISTS command
 - [ ] Cluster mode (multi-node)
 - [ ] Persistence (RDB / AOF)
 - [ ] Pub/Sub
