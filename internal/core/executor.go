@@ -115,6 +115,8 @@ func ExecuteAndResponse(cmd *Command, connFd int) error {
 		res = cmdSMEMBERS(cmd.Args)
 	case "SISMEMBER":
 		res = cmdSISMEMBER(cmd.Args)
+	case "HELP":
+		res = cmdHELP()
 	default:
 		res = []byte("-CMD NOT FOUND\r\n")
 	}
