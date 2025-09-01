@@ -1,26 +1,109 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* GruvBox Dark palette */
+  --gruv-bg: #282828;
+  --gruv-bg-1: #1d2021;
+  --gruv-bg-2: #32302f;
+  --gruv-fg: #ebdbb2;
+  --gruv-muted: #a89984;
+  --gruv-yellow: #fabd2f;
+  --gruv-orange: #fe8019;
+  --gruv-red: #fb4934;
+  --gruv-green: #b8bb26;
+  --gruv-aqua: #8ec07c;
+  --gruv-blue: #83a598;
+  --gruv-purple: #b16286;
+  --gruv-cursor: #fabd2f;
 }
 
+/* Keep theme inline block if needed */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--gruv-bg);
+  --color-foreground: var(--gruv-fg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--gruv-bg);
+  color: var(--gruv-fg);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Utility classes for components */
+.bg-gruv-dark {
+  background: var(--gruv-bg) !important;
+}
+.terminal-panel {
+  background: var(--gruv-bg-1) !important;
+  color: var(--gruv-fg);
+}
+.stats-panel {
+  background: var(--gruv-bg-2) !important;
+  color: var(--gruv-fg);
+}
+.border-gruv {
+  border-color: rgba(235, 219, 178, 0.06);
+}
+.text-gruv-muted {
+  color: var(--gruv-muted);
+}
+.header-gruv {
+  color: var(--gruv-fg);
+}
+
+/* xterm specific tweaks so container and canvas follow GruvBox */
+.terminal-xterm .xterm {
+  background: var(--gruv-bg) !important;
+  color: var(--gruv-fg) !important;
+}
+.terminal-xterm .xterm .xterm-viewport {
+  background: transparent !important;
+}
+
+/* Header & Footer styles */
+.app-header {
+  background: var(--gruv-bg);
+  border-bottom: 1px solid rgba(235, 219, 178, 0.04);
+  backdrop-filter: blur(4px);
+}
+.app-footer {
+  background: transparent;
+  border-top: 1px solid rgba(235, 219, 178, 0.03);
+}
+
+/* Buttons used in header */
+.btn-gruv {
+  background: linear-gradient(
+    180deg,
+    rgba(250, 189, 47, 0.98),
+    rgba(250, 189, 47, 0.85)
+  );
+  color: var(--gruv-bg-1);
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.45rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-gruv:hover {
+  filter: brightness(0.95);
+}
+.btn-gruv-outline {
+  border: 1px solid rgba(235, 219, 178, 0.06);
+  color: var(--gruv-fg);
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.45rem;
+  text-decoration: none;
+  background: transparent;
+}
+.btn-gruv-outline:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Ensure header/footer text follows Gruv colors */
+.app-header .text-gruv-muted,
+.app-footer .text-gruv-muted {
+  color: var(--gruv-muted);
 }

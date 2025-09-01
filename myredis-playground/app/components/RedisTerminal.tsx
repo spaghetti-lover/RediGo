@@ -37,9 +37,18 @@ export default function RedisTerminal() {
         fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
         fontSize: 15,
         theme: {
-          background: "#101624",
-          foreground: "#e0e7ef",
-          cursor: "#38bdf8",
+          background:
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--gruv-bg")
+              .trim() || "#282828",
+          foreground:
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--gruv-fg")
+              .trim() || "#ebdbb2",
+          cursor:
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--gruv-cursor")
+              .trim() || "#fabd2f",
         },
       });
 
@@ -158,42 +167,51 @@ export default function RedisTerminal() {
   }
 
   return (
-    <div className="w-screen min-h-screen flex flex-col items-center justify-center bg-[#0f172a] p-6">
+    <div className="w-screen min-h-screen flex flex-col items-center justify-center bg-gruv-dark p-6">
       <div className="flex w-full max-w-6xl h-[70vh] gap-6">
         {/* Terminal */}
-        <div className="flex-1 bg-[#101624] rounded-3xl border flex flex-col">
-          <div className="px-5 py-2 flex items-center gap-2 border-b">
-            <span className="text-xs font-mono">Terminal</span>
+        <div className="flex-1 terminal-panel rounded-3xl border border-gruv flex flex-col">
+          <div className="px-5 py-2 flex items-center gap-2 border-b border-gruv">
+            <span className="text-xs font-mono header-gruv">Terminal</span>
           </div>
-          <div ref={terminalRef} className="w-full flex-1 p-2" />
+
+          {/* Move padding to wrapper so xterm can measure exact available space */}
+          <div className="flex-1 p-2">
+            <div ref={terminalRef} className="w-full h-full terminal-xterm" />
+          </div>
         </div>
 
         {/* Stats Panel */}
         <div className="w-80 min-w-[18rem]">
-          <div className="bg-[#181e2a] rounded-2xl p-6 border">
-            <h2 className="text-lg font-bold text-white mb-4">Server Stats</h2>
+          <div className="stats-panel rounded-2xl p-6 border border-gruv">
+            <h2 className="text-lg font-bold text-gruv-muted mb-4">
+              Server Stats
+            </h2>
             {stats ? (
               <ul className="space-y-2 text-base">
                 <li className="flex justify-between">
-                  <span>Keys</span>
+                  <span className="text-gruv-muted">Keys</span>
                   <span>{stats.keys}</span>
                 </li>
                 <li className="flex justify-between">
-                  <span>Memory</span>
+                  <span className="text-gruv-muted">Memory</span>
                   <span>{stats.memory}</span>
                 </li>
                 <li className="flex justify-between">
-                  <span>Uptime</span>
+                  <span className="text-gruv-muted">Uptime</span>
                   <span>{stats.uptime}s</span>
                 </li>
                 <li className="flex justify-between">
-                  <span>Clients</span>
+                  <span className="text-gruv-muted">Clients</span>
                   <span>{stats.clients}</span>
                 </li>
               </ul>
             ) : (
               <div className="flex items-center justify-center h-20">
-                <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-cyan-400"></div>
+                <div
+                  className="animate-spin rounded-full h-7 w-7 border-b-2"
+                  style={{ borderColor: "var(--gruv-yellow)" }}
+                ></div>
               </div>
             )}
           </div>
