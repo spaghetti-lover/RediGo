@@ -1,0 +1,56 @@
+services:
+  redis-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - redis-net
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./cmd/gateway/Dockerfile
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    depends_on:
+      - redis-server
+    networks:
+      - redis-net
+    environment:
+      - REDIS_ADDR=redis-server:6379
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/stats",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./myredis-playground
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
+    networks:
+      - redis-net
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=http://gateway:8080
+
+networks:
+  redis-net:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local

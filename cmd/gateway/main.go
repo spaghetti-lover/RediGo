@@ -24,7 +24,8 @@ type CommandResponse struct {
 }
 
 func main() {
-	http.HandleFunc("/command", handleCommand)
+	http.HandleFunc("/command", corsMiddleware(handleCommand))
+	http.HandleFunc("/stats", corsMiddleware(handleStats))
 
 	fmt.Printf("HTTP Gateway listening on port %s", config.HTTPPort)
 	log.Printf("Will connect to Redis at: %s", config.Port)
@@ -38,17 +39,34 @@ func main() {
 	log.Fatal(server.ListenAndServe())
 }
 
-func handleCommand(w http.ResponseWriter, r *http.Request) {
-	// Thêm CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next(w, r)
+	}
+}
+
+func handleStats(w http.ResponseWriter, r *http.Request) {
+	stats := map[string]interface{}{
+		"keys":    10,    // ví dụ: hàm trả số keys hiện tại
+		"memory":  1024,  // MB
+		"uptime":  10000, // giây
+		"clients": 10,
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+func handleCommand(w http.ResponseWriter, r *http.Request) {
 	var req CommandRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -67,8 +85,11 @@ func handleCommand(w http.ResponseWriter, r *http.Request) {
 
 // Send command to Redis server thoruh TCP (port 6379).
 func sendToRedis(cmd string) (interface{}, error) {
-	redisAddr := strings.Replace(config.Port, ":", "", 1)
-	redisAddr = "localhost:" + redisAddr
+	redisAddr := config.RedisAddr
+
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
 
 	conn, err := net.DialTimeout("tcp", redisAddr, 5*time.Second)
 	if err != nil {
