@@ -1,16 +1,16 @@
 # Stage 1: Build frontend
 FROM node:18-alpine AS builder
 
-# Đặt thư mục làm việc
+# Set working directory
 WORKDIR /app
 
-# Copy package.json và lockfile trước (tối ưu cache layer)
+# Copy package.json and lockfile first (optimize cache layer)
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
 
-# Cài dependencies
+# Install dependencies
 RUN npm install
 
-# Copy toàn bộ source code
+# Copy entire source code
 COPY . .
 
 # Build Next.js
@@ -23,7 +23,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy từ stage builder
+# Copy from builder stage
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next

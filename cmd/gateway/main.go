@@ -56,7 +56,7 @@ func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 func handleStats(w http.ResponseWriter, r *http.Request) {
 	stats := map[string]interface{}{
-		"keys":    10,    // ví dụ: hàm trả số keys hiện tại
+		"keys":    10,    // example: function returns current number of keys
 		"memory":  1024,  // MB
 		"uptime":  10000, // giây
 		"clients": 10,

@@ -117,7 +117,7 @@ export default function RedisTerminal() {
     };
   }, [isClient]);
 
-  // fetch stats mỗi 2 giây
+  // Fetch stats every 2 seconds
   useEffect(() => {
     if (!isClient) return;
 
@@ -134,7 +134,7 @@ export default function RedisTerminal() {
   }, [isClient]);
 
   if (!isClient) {
-    return null; // hoặc loading component
+    return null; // or loading component
   }
 
   return (
