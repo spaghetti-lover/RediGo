@@ -1,10 +1,5 @@
 package data_structure
 
-type Item struct {
-	Score  float64
-	Member string
-}
-
 func (i *Item) CompareTo(other *Item) int {
 	if i.Score < other.Score {
 		return -1

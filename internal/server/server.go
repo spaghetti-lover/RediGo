@@ -25,12 +25,12 @@ func readCommand(fd int) (*core.Command, error) {
 	return core.ParseCmd(buf)
 }
 
-func respond(data string, fd int) error {
-	if _, err := syscall.Write(fd, []byte(data)); err != nil {
-		return err
-	}
-	return nil
-}
+// func respond(data string, fd int) error {
+// 	if _, err := syscall.Write(fd, []byte(data)); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func RunIoMultiplexingServer() {
 	log.Println("starting an I/O Multiplexing TCP server on", config.Port)

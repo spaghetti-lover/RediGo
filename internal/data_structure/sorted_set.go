@@ -1,5 +1,10 @@
 package data_structure
 
+type Item struct {
+	Score  float64
+	Member string
+}
+
 type SortedSet struct {
 	Index       OrderedIndex
 	MemberScore map[string]float64

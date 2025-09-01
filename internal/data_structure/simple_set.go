@@ -49,7 +49,7 @@ func (s *SimpleSet) IsMember(member string) int {
 }
 
 // SMEMBERS
-func (s *SimpleSet) Member() []string {
+func (s *SimpleSet) Members() []string {
 	m := make([]string, 0, len(s.dict))
 
 	for k := range s.dict {
