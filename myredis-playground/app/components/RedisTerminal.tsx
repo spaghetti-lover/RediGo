@@ -270,7 +270,9 @@ export default function RedisTerminal() {
             </div>
             <div className="space-y-2 text-sm">
               <div className="bg-[#23293a] rounded-lg p-3">
-                <code className="text-cyan-400">SET name "Alice"</code>
+                <code className="text-cyan-400">
+                  SET name &quot;Alice&quot;
+                </code>
                 <p className="text-gray-400 text-xs mt-1">Store a value</p>
               </div>
               <div className="bg-[#23293a] rounded-lg p-3">
