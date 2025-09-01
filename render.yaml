@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: multithread-redis-app
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.render
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_ADDR
+        value: localhost:6379
+      - key: HTTP_PORT
+        value: :8080
+      - key: NEXT_PUBLIC_GATEWAY_URL
+        value: http://localhost:8080

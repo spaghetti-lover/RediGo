@@ -42,8 +42,8 @@ func main() {
 func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
@@ -58,7 +58,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 	stats := map[string]interface{}{
 		"keys":    10,    // example: function returns current number of keys
 		"memory":  1024,  // MB
-		"uptime":  10000, // giây
+		"uptime":  10000, // seconds
 		"clients": 10,
 	}
 

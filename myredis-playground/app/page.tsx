@@ -6,7 +6,7 @@ const RedisTerminal = dynamic(() => import("./components/RedisTerminal"), {
   loading: () => (
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6">
       <div className="text-center mb-4">
-        <h1 className="text-2xl font-bold text-white">MyRedis Playground</h1>
+        <h1 className="text-2xl font-bold text-white">RediGo Playground</h1>
         <p className="text-gray-400 text-sm">Loading terminal...</p>
       </div>
       <div className="flex w-full max-w-6xl h-[75vh] gap-4">

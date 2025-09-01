@@ -99,7 +99,7 @@ func DecodeOne(data []byte) (interface{}, int, error) {
 	case '*':
 		return readArray(data)
 	}
-	return nil, 0, nil
+	return fmt.Sprintf("unknown prefix: %c", data[0]), 0, nil
 }
 
 func Decode(data []byte) (interface{}, error) {
@@ -153,9 +153,17 @@ func Encode(value interface{}, isSimpleString bool) []byte {
 }
 
 func ParseCmd(data []byte) (*Command, error) {
+	if len(data) == 0 {
+		return nil, fmt.Errorf("empty data")
+	}
+
 	value, err := Decode(data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode RESP: %v", err)
+	}
+
+	if value == nil {
+		return nil, fmt.Errorf("decoded value is nil")
 	}
 
 	array := value.([]interface{})

@@ -50,7 +50,7 @@ export default function RedisTerminal() {
         fitAddon.fit();
       }
 
-      term.writeln("\x1b[1;36mWelcome to MyRedis Playground! 🚀\x1b[0m");
+      term.writeln("\x1b[1;36mWelcome to RediGo Playground! 🚀\x1b[0m");
       term.writeln(
         "Type commands like \x1b[33mSET name Alice\x1b[0m or \x1b[33mGET name\x1b[0m.\r\n"
       );
@@ -141,9 +141,9 @@ export default function RedisTerminal() {
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6">
       {/* Header */}
       <div className="text-center mb-4">
-        <h1 className="text-2xl font-bold text-white">MyRedis Playground</h1>
+        <h1 className="text-2xl font-bold text-white">RediGo Playground</h1>
         <p className="text-gray-400 text-sm">
-          Experiment with your Redis clone online
+          Experiment with multithread Redis online!
         </p>
       </div>
 

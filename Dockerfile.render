@@ -1,0 +1,53 @@
+FROM golang:1.24-alpine AS go-builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+COPY . .
+
+RUN CGO_ENABLED=0 go build -o redis-server ./cmd/main.go
+RUN CGO_ENABLED=0 go build -o gateway-app ./cmd/gateway/main.go
+
+# ---- Build Next.js frontend ----
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app
+
+# Copy package manifest trước để cache install
+COPY myredis-playground/package.json myredis-playground/package-lock.json* ./
+RUN npm install
+
+# Copy toàn bộ source và build
+COPY myredis-playground/ ./
+ENV NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080
+RUN npm run build
+
+# ---- Final runtime ----
+FROM node:18-alpine
+WORKDIR /app
+
+
+# Copy Go binaries
+COPY --from=go-builder /app/redis-server .
+COPY --from=go-builder /app/gateway-app .
+
+# Copy frontend build artifacts
+COPY --from=frontend-builder /app/.next ./.next
+COPY --from=frontend-builder /app/public ./public
+COPY --from=frontend-builder /app/node_modules ./node_modules
+COPY --from=frontend-builder /app/package.json .
+
+# Startup script
+RUN printf '#!/bin/sh\n\
+./redis-server &\n\
+REDIS_PID=$!\n\
+sleep 2\n\
+REDIS_ADDR=localhost:6379 HTTP_PORT=:8080 ./gateway-app &\n\
+GATEWAY_PID=$!\n\
+sleep 2\n\
+PORT=${PORT:-3000} NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080 npm run start &\n\
+FRONTEND_PID=$!\n\
+trap "kill $REDIS_PID $GATEWAY_PID $FRONTEND_PID" SIGTERM SIGINT\n\
+wait\n' > start.sh && chmod +x start.sh
+
+EXPOSE 3000 8080 6379
+CMD ["./start.sh"]
