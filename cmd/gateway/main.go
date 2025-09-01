@@ -8,6 +8,10 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/spaghetti-lover/multithread-redis/internal/config"
+	"github.com/spaghetti-lover/multithread-redis/internal/core"
 )
 
 type CommandRequest struct {
@@ -15,14 +19,23 @@ type CommandRequest struct {
 }
 
 type CommandResponse struct {
-	Output string `json:"output"`
-	Error  string `json:"error,omitempty"`
+	Output interface{} `json:"output"`
+	Error  string      `json:"error,omitempty"`
 }
 
 func main() {
 	http.HandleFunc("/command", handleCommand)
-	fmt.Println("HTTP Gateway listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	fmt.Printf("HTTP Gateway listening on port %s", config.HTTPPort)
+	log.Printf("Will connect to Redis at: %s", config.Port)
+
+	server := &http.Server{
+		Addr:         config.HTTPPort,
+		ReadTimeout:  time.Duration(config.HTTPReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(config.HTTPWriteTimeout) * time.Second,
+	}
+
+	log.Fatal(server.ListenAndServe())
 }
 
 func handleCommand(w http.ResponseWriter, r *http.Request) {
@@ -47,31 +60,64 @@ func handleCommand(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// Gửi command tới Redis server qua TCP (port 6379)
-func sendToRedis(cmd string) (string, error) {
-	conn, err := net.Dial("tcp", "localhost:6379") // đổi thành host:port Redis của bạn
+// Send command to Redis server thoruh TCP (port 6379).
+func sendToRedis(cmd string) (interface{}, error) {
+	redisAddr := strings.Replace(config.Port, ":", "", 1)
+	redisAddr = "localhost:" + redisAddr
+
+	conn, err := net.DialTimeout("tcp", redisAddr, 5*time.Second)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer conn.Close()
 
-	// Gửi lệnh theo RESP (ở mức đơn giản: tách theo space, wrap lại)
-	parts := strings.Split(cmd, " ")
-	resp := fmt.Sprintf("*%d\r\n", len(parts))
-	for _, p := range parts {
-		resp += fmt.Sprintf("$%d\r\n%s\r\n", len(p), p)
+	// Set read/write timeout
+	conn.SetDeadline(time.Now().Add(10 * time.Second))
+
+	// Parse command to array of strings.
+	parts := strings.Fields(strings.TrimSpace(cmd))
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("empty command")
 	}
 
-	_, err = conn.Write([]byte(resp))
+	// Convert to []interface{} to Encode
+	cmdArray := make([]interface{}, len(parts))
+	for i, part := range parts {
+		cmdArray[i] = part
+	}
+
+	// Encode command to RESP
+	respData := core.Encode(cmdArray, false)
+
+	// Log for debug
+	log.Printf("Sending RESP: %q", string(respData))
+
+	// Send command
+	_, err = conn.Write(respData)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Đọc trả lời
-	buf, err := io.ReadAll(conn)
+	// Read response
+	buf := make([]byte, 512)
+	n, err := conn.Read(buf)
 	if err != nil {
-		return "", err
+		if err == io.EOF {
+			return nil, fmt.Errorf("connection closed by server: %v", err)
+		}
+		return nil, err
 	}
 
-	return string(buf), nil
+	rawResponse := buf[:n]
+	log.Printf("Received raw response: %q", string(rawResponse))
+
+	// Decode RESP command
+	decodedResponse, err := core.Decode(rawResponse)
+	if err != nil {
+		log.Printf("Decode error: %v, raw data: %q", err, string(rawResponse))
+		return string(rawResponse), nil
+	}
+
+	log.Printf("Decoded response: %+v", decodedResponse)
+	return decodedResponse, nil
 }
