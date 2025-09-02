@@ -93,7 +93,7 @@ func sendToRedis(cmd string) (interface{}, error) {
 		redisAddr = "localhost:6379"
 	}
 
-	conn, err := net.DialTimeout("tcp", redisAddr, 5*time.Second)
+	conn, err := net.DialTimeout("tcp", redisAddr, 60*time.Second)
 	if err != nil {
 		return nil, err
 	}
