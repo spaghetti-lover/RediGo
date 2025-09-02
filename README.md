@@ -1,10 +1,26 @@
 <h1 align="center">RediGo</h1>
+
 <p align="center">
-    <img src="docs/logo.jpeg" alt="Logo" height="128" width="128"/>
+<pre>
+                            ██████  ███████ ██████  ██  ██████   ██████
+                            ██   ██ ██      ██   ██ ██ ██       ██    ██
+                            ██████  █████   ██   ██ ██ ██   ███ ██    ██
+                            ██   ██ ██      ██   ██ ██ ██    ██ ██    ██
+                            ██   ██ ███████ ██████  ██  ██████   ██████
+</pre>
 </p>
+
 <p align="center">
-     A Redis-like in-memory datastore built in Go, with focus on concurrency, caching
+  <em>⚡ A Redis-like in-memory datastore built in Go, with focus on concurrency & caching ⚡</em>
 </p>
+
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8.svg)](https://golang.org)
+[![Stars](https://img.shields.io/github/stars/spaghetti-lover/RediGo?style=social)](https://github.com/spaghetti-lover/RediGo/stargazers)
+
+</div>
 
 <a name="table-of-contents"></a>
 
