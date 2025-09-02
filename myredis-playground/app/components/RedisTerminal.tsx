@@ -120,6 +120,12 @@ export default function RedisTerminal() {
           const cmd = currentInput.trim();
           term.writeln("");
           if (cmd) {
+            if (cmd.toLowerCase() === "clear") {
+              term.clear();
+              term.write("redigo> ");
+              currentInput = "";
+              return;
+            }
             try {
               term.write("...");
               const res = await fetch(`${gatewayUrl}/command`, {
@@ -132,7 +138,6 @@ export default function RedisTerminal() {
               if (data.error) {
                 term.writeln("Error: " + data.error);
               } else {
-                // HELP command - hiển thị từng dòng
                 if (
                   cmd.toLowerCase() === "help" &&
                   Array.isArray(data.output)
