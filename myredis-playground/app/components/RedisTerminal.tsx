@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Header from "./Header";
+import Footer from "./Footer";
 
 type Stats = {
   keys: number;
@@ -294,6 +295,7 @@ export default function RedisTerminal() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
