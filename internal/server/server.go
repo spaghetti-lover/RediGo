@@ -105,7 +105,7 @@ func RunIoMultiplexingServer() {
 				if err != nil {
 					if err == io.EOF || err == syscall.ECONNRESET {
 						log.Println("client disconnected: ", err)
-						_ = syscall.Close(events[i].Fd)
+
 						err = ioMultiplexer.Unmonitor(iomux.Event{
 							Fd: events[i].Fd,
 							Op: iomux.OpRead,
