@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: multithread-redis-app
+    name: multithread-redigo-playground
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile.render
