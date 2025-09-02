@@ -24,7 +24,7 @@ RUN npm install
 
 # Copy toàn bộ source và build
 COPY myredis-playground/ ./
-ENV NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080
+
 RUN npm run build
 
 # ---- Final runtime ----

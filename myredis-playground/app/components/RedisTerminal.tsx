@@ -50,8 +50,6 @@ export default function RedisTerminal() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
-  const gatewayUrl =
-    process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:8080";
 
   useEffect(() => {
     setIsClient(true);
@@ -128,7 +126,7 @@ export default function RedisTerminal() {
             }
             try {
               term.write("...");
-              const res = await fetch(`${gatewayUrl}/command`, {
+              const res = await fetch("api/command", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ cmd }),
@@ -204,7 +202,7 @@ export default function RedisTerminal() {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${gatewayUrl}/stats`);
+        const res = await fetch("api/stats");
         const data = await res.json();
         setStats(data);
         setIsConnected(true);
