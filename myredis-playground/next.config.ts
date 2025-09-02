@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export",
   trailingSlash: true,
   images: {
     unoptimized: true,
@@ -8,6 +7,14 @@ const nextConfig = {
   devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/:path*",
+        destination: "http://localhost:8080/:path*",
+      },
+    ];
   },
 };
 
