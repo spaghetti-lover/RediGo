@@ -1,2 +1,20 @@
+# Test the application
 test:
 	go test ./... -v
+# Development
+dev:
+	docker-compose up --build
+
+# Production (separate containers)
+prod:
+	docker-compose -f docker-compose.prod.yml up -d
+
+# Deployment (single container)
+deploy:
+	docker build -f Dockerfile.render -t myredis-app .
+	docker run -p 3000:3000 -p 8080:8080 -p 6379:6379 myredis-app
+
+# Clean up
+clean:
+	docker-compose down -v
+	docker system prune -f
