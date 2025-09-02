@@ -104,12 +104,15 @@ func RunIoMultiplexingServer() {
 				cmd, err := readCommand(events[i].Fd)
 				if err != nil {
 					if err == io.EOF || err == syscall.ECONNRESET {
-						log.Println("client disconnected")
+						log.Println("client disconnected: ", err)
 						_ = syscall.Close(events[i].Fd)
-						ioMultiplexer.Unmonitor(iomux.Event{
+						err = ioMultiplexer.Unmonitor(iomux.Event{
 							Fd: events[i].Fd,
 							Op: iomux.OpRead,
 						})
+						if err != nil {
+							log.Println("Can not unmonitor: ", err)
+						}
 						_ = syscall.Close(events[i].Fd)
 						continue
 					}
@@ -119,10 +122,13 @@ func RunIoMultiplexingServer() {
 				if err = core.ExecuteAndResponse(cmd, events[i].Fd); err != nil {
 					log.Println("err write: ", err)
 
-					ioMultiplexer.Unmonitor(iomux.Event{
+					err = ioMultiplexer.Unmonitor(iomux.Event{
 						Fd: events[i].Fd,
 						Op: iomux.OpRead,
 					})
+					if err != nil {
+						log.Println("Can not unmonitor: ", err)
+					}
 					_ = syscall.Close(events[i].Fd)
 				}
 			}
