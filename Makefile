@@ -11,6 +11,8 @@ prod:
 
 # Deployment (single container)
 deploy:
+	go mod tidy
+	go mod vendor
 	docker build -f Dockerfile.render -t myredis-app .
 	docker run -p 3000:3000 -p 8080:8080 -p 6379:6379 myredis-app
 
