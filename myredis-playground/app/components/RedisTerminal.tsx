@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Header from "./Header";
 
 type Stats = {
   keys: number;
@@ -60,7 +61,18 @@ export default function RedisTerminal() {
         fitAddon.fit();
       }
 
-      term.writeln("RediGo Playground - Multithread Redis");
+      term.writeln("🚀  Welcome to RediGo");
+      term.writeln("");
+      term.writeln("   ██████  ███████ ██████   ██  ██████   ██████ ");
+      term.writeln("   ██   ██ ██      ██   ██  ██ ██       ██    ██");
+      term.writeln("   ██████  █████   ██   ██  ██ ██   ███ ██    ██");
+      term.writeln("   ██   ██ ██      ██   ██  ██ ██    ██ ██    ██");
+      term.writeln("   ██   ██ ███████ ██████   ██  ██████   ██████ ");
+      term.writeln("");
+      term.writeln("Fast, efficient, multithreaded Redis server in Go.");
+      term.writeln("");
+      term.writeln("👉  Repo: https://github.com/spaghetti-lover/RediGo");
+      term.writeln("");
       term.writeln("Type `help` for more information.\r\n");
 
       let currentInput = "";
@@ -168,50 +180,115 @@ export default function RedisTerminal() {
 
   return (
     <div className="w-screen min-h-screen flex flex-col items-center justify-center bg-gruv-dark p-6">
+      <Header />
       <div className="flex w-full max-w-6xl h-[70vh] gap-6">
         {/* Terminal */}
-        <div className="flex-1 terminal-panel rounded-3xl border border-gruv flex flex-col">
-          <div className="px-5 py-2 flex items-center gap-2 border-b border-gruv">
-            <span className="text-xs font-mono header-gruv">Terminal</span>
+        <div className="flex-1 terminal-panel border border-gruv flex flex-col overflow-hidden">
+          <div className="px-5 py-3 flex items-center gap-2 border-b border-gruv bg-gruv-dark/50">
+            <div className="flex gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+            </div>
+            <span className="text-xs font-mono header-gruv ml-3">Terminal</span>
           </div>
 
-          {/* Move padding to wrapper so xterm can measure exact available space */}
-          <div className="flex-1 p-2">
+          {/* Custom scrollbar styling for xterm container */}
+          <div className="flex-1 p-2 terminal-container">
+            <style jsx>{`
+              .terminal-container :global(.xterm-viewport) {
+                scrollbar-width: thin;
+                scrollbar-color: #665c54 #32302f;
+              }
+
+              .terminal-container :global(.xterm-viewport::-webkit-scrollbar) {
+                width: 8px;
+              }
+
+              .terminal-container
+                :global(.xterm-viewport::-webkit-scrollbar-track) {
+                background: #1d2021;
+                border-radius: 4px;
+              }
+
+              .terminal-container
+                :global(.xterm-viewport::-webkit-scrollbar-thumb) {
+                background: #665c54;
+                border-radius: 4px;
+                border: 1px solid #32302f;
+              }
+
+              .terminal-container
+                :global(.xterm-viewport::-webkit-scrollbar-thumb:hover) {
+                background: #7c6f64;
+              }
+
+              .terminal-container
+                :global(.xterm-viewport::-webkit-scrollbar-corner) {
+                background: #1d2021;
+              }
+
+              .terminal-container :global(.xterm) {
+                padding: 12px;
+                background: transparent !important;
+              }
+
+              .terminal-container :global(.xterm-screen) {
+                border-radius: 4px;
+              }
+            `}</style>
             <div ref={terminalRef} className="w-full h-full terminal-xterm" />
           </div>
         </div>
 
         {/* Stats Panel */}
         <div className="w-80 min-w-[18rem]">
-          <div className="stats-panel rounded-2xl p-6 border border-gruv">
-            <h2 className="text-lg font-bold text-gruv-muted mb-4">
-              Server Stats
-            </h2>
+          <div className="stats-panel p-6 border border-gruv bg-gruv-dark/30 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <h2 className="text-lg font-bold text-gruv-muted">
+                Server Stats
+              </h2>
+            </div>
             {stats ? (
-              <ul className="space-y-2 text-base">
-                <li className="flex justify-between">
+              <ul className="space-y-3 text-base">
+                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
                   <span className="text-gruv-muted">Keys</span>
-                  <span>{stats.keys}</span>
+                  <span className="font-mono text-gruv-yellow">
+                    {stats.keys}
+                  </span>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
                   <span className="text-gruv-muted">Memory</span>
-                  <span>{stats.memory}</span>
+                  <span className="font-mono text-gruv-green">
+                    {stats.memory}
+                  </span>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
                   <span className="text-gruv-muted">Uptime</span>
-                  <span>{stats.uptime}s</span>
+                  <span className="font-mono text-gruv-blue">
+                    {stats.uptime}s
+                  </span>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
                   <span className="text-gruv-muted">Clients</span>
-                  <span>{stats.clients}</span>
+                  <span className="font-mono text-gruv-purple">
+                    {stats.clients}
+                  </span>
                 </li>
               </ul>
             ) : (
               <div className="flex items-center justify-center h-20">
-                <div
-                  className="animate-spin rounded-full h-7 w-7 border-b-2"
-                  style={{ borderColor: "var(--gruv-yellow)" }}
-                ></div>
+                <div className="relative">
+                  <div
+                    className="animate-spin rounded-full h-8 w-8 border-2 border-transparent"
+                    style={{
+                      borderTopColor: "var(--gruv-yellow)",
+                      borderRightColor: "var(--gruv-yellow)",
+                    }}
+                  ></div>
+                  <div className="absolute inset-0 animate-ping rounded-full h-8 w-8 border border-gruv-yellow/30"></div>
+                </div>
               </div>
             )}
           </div>

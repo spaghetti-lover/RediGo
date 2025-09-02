@@ -162,17 +162,31 @@ func ParseCmd(data []byte) (*Command, error) {
 		return nil, fmt.Errorf("failed to decode RESP: %v", err)
 	}
 
-	var array []interface{}
-	if value == nil {
-		array = make([]interface{}, 0)
-	} else {
-		array = value.([]interface{})
+	var tokens []string
+
+	switch v := value.(type) {
+	case nil:
+		tokens = []string{}
+	case []interface{}:
+		tokens = make([]string, len(v))
+		for i, e := range v {
+			switch t := e.(type) {
+			case string:
+				tokens[i] = t
+			case int64:
+				tokens[i] = fmt.Sprintf("%d", t)
+			default:
+				tokens[i] = fmt.Sprint(t)
+			}
+		}
+	case string:
+		tokens = strings.Fields(v)
+	default:
+		tokens = []string{fmt.Sprint(v)}
 	}
 
-	tokens := make([]string, len(array))
-
-	for i := range tokens {
-		tokens[i] = array[i].(string)
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("no command found")
 	}
 
 	res := &Command{Cmd: strings.ToUpper(tokens[0]), Args: tokens[1:]}
