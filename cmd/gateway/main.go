@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/spaghetti-lover/multithread-redis/internal/config"
 	"github.com/spaghetti-lover/multithread-redis/internal/core"
+	"github.com/spaghetti-lover/multithread-redis/utils"
 )
 
 type CommandRequest struct {
@@ -55,11 +57,11 @@ func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func handleStats(w http.ResponseWriter, r *http.Request) {
-	stats := map[string]interface{}{
-		"keys":    10,    // example: function returns current number of keys
-		"memory":  1024,  // MB
-		"uptime":  10000, // seconds
-		"clients": 10,
+	systemStats := utils.NewSystemStats()
+	stats, err := systemStats.GetAllStats(context.Background())
+	if err != nil {
+		http.Error(w, "Failed to get system stats", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

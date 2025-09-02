@@ -4,10 +4,45 @@ import Header from "./Header";
 import Footer from "./Footer";
 
 type Stats = {
-  keys: number;
-  memory: string;
-  uptime: number;
-  clients: number;
+  [key: string]: number | string; // Dynamic keys
+};
+
+// Mapping function để convert backend keys sang display names
+const getDisplayName = (key: string): string => {
+  const keyMap: { [key: string]: string } = {
+    keys: "Keys",
+    memory: "Memory",
+    memory_used_mb: "Memory",
+    uptime: "Uptime",
+    uptime_sec: "Uptime",
+    clients: "Clients",
+    connected_clients: "Clients",
+    // Có thể thêm nhiều mappings khác
+  };
+  return (
+    keyMap[key] ||
+    key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+  );
+};
+
+// Function để format giá trị hiển thị
+const formatValue = (key: string, value: number | string): string => {
+  if (key.includes("uptime") && typeof value === "number") {
+    return `${value}s`;
+  }
+  if (key.includes("memory") && typeof value === "number") {
+    return `${value}MB`;
+  }
+  return String(value);
+};
+
+// Function để lấy màu theo loại stat
+const getStatColor = (key: string): string => {
+  if (key.includes("key")) return "text-gruv-yellow";
+  if (key.includes("memory")) return "text-gruv-green";
+  if (key.includes("uptime")) return "text-gruv-blue";
+  if (key.includes("client")) return "text-gruv-purple";
+  return "text-gruv-fg"; // default color
 };
 
 export default function RedisTerminal() {
@@ -246,37 +281,30 @@ export default function RedisTerminal() {
         <div className="w-80 min-w-[18rem]">
           <div className="stats-panel p-6 border border-gruv bg-gruv-dark/30 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <div
+                className={`w-2 h-2 rounded-full animate-pulse ${
+                  isConnected ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
               <h2 className="text-lg font-bold text-gruv-muted">
                 Server Stats
               </h2>
             </div>
             {stats ? (
               <ul className="space-y-3 text-base">
-                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
-                  <span className="text-gruv-muted">Keys</span>
-                  <span className="font-mono text-gruv-yellow">
-                    {stats.keys}
-                  </span>
-                </li>
-                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
-                  <span className="text-gruv-muted">Memory</span>
-                  <span className="font-mono text-gruv-green">
-                    {stats.memory}
-                  </span>
-                </li>
-                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
-                  <span className="text-gruv-muted">Uptime</span>
-                  <span className="font-mono text-gruv-blue">
-                    {stats.uptime}s
-                  </span>
-                </li>
-                <li className="flex justify-between items-center p-2 rounded bg-gruv-dark/40">
-                  <span className="text-gruv-muted">Clients</span>
-                  <span className="font-mono text-gruv-purple">
-                    {stats.clients}
-                  </span>
-                </li>
+                {Object.entries(stats).map(([key, value]) => (
+                  <li
+                    key={key}
+                    className="flex justify-between items-center p-2 rounded bg-gruv-dark/40"
+                  >
+                    <span className="text-gruv-muted">
+                      {getDisplayName(key)}
+                    </span>
+                    <span className={`font-mono ${getStatColor(key)}`}>
+                      {formatValue(key, value)}
+                    </span>
+                  </li>
+                ))}
               </ul>
             ) : (
               <div className="flex items-center justify-center h-20">
