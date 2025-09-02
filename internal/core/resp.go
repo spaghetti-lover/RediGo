@@ -162,11 +162,13 @@ func ParseCmd(data []byte) (*Command, error) {
 		return nil, fmt.Errorf("failed to decode RESP: %v", err)
 	}
 
+	var array []interface{}
 	if value == nil {
-		return nil, fmt.Errorf("decoded value is nil")
+		array = make([]interface{}, 0)
+	} else {
+		array = value.([]interface{})
 	}
 
-	array := value.([]interface{})
 	tokens := make([]string, len(array))
 
 	for i := range tokens {
