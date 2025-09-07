@@ -23,8 +23,17 @@ func cmdZADD(args []string) []byte {
 
 	zset, exist := zsetStore[key]
 	if !exist {
-		bplustree := data_structure.NewBPlusTree(constant.DefaultBPlusTreeDegree)
-		zset = data_structure.NewSortedSet(bplustree)
+		config := data_structure.IndexConfig{
+			Type:   data_structure.IndexTypeBTree,
+			Degree: constant.DefaultBPlusTreeDegree,
+		}
+
+		var err error
+		zset, err = data_structure.NewSortedSet(config)
+		if err != nil {
+			return Encode(errors.New("(error) Can not initialize sorted set: "+err.Error()), false)
+		}
+
 		zsetStore[key] = zset
 	}
 

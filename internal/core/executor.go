@@ -107,6 +107,8 @@ func ExecuteAndResponse(cmd *Command, connFd int) error {
 		res = cmdZADD(cmd.Args)
 	case "ZSCORE":
 		res = cmdZSCORE(cmd.Args)
+	case "ZRANK":
+		res = cmdZRANK(cmd.Args)
 	case "SADD":
 		res = cmdSADD(cmd.Args)
 	case "SREM":
