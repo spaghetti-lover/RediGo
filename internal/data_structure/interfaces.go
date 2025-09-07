@@ -15,11 +15,13 @@ type OrderedIndex interface {
 type IndexType string
 
 const (
-	IndexTypeBTree IndexType = "btree"
+	IndexTypeBTree    IndexType = "btree"
+	IndexTypeSkipList IndexType = "skiplist"
 )
 
 // IndexConfig holds configuration for creating indexes
 type IndexConfig struct {
-	Type   IndexType
-	Degree int // For B+ Tree
+	Type     IndexType
+	Degree   int // For B+ Tree
+	MaxLevel int // For Skip List
 }

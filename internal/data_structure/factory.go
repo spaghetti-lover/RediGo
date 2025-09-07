@@ -10,6 +10,8 @@ func NewOrderedIndex(config IndexConfig) (OrderedIndex, error) {
 			config.Degree = 4 // Default degree
 		}
 		return NewBTreeIndex(config.Degree), nil
+	case IndexTypeSkipList:
+		return NewSkipListIndex(config.MaxLevel), nil
 	default:
 		return nil, fmt.Errorf("unsupported index type: %s", config.Type)
 	}
