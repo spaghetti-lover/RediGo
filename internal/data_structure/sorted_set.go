@@ -27,9 +27,26 @@ func NewSortedSetWithBTree(degree int) (*SortedSet, error) {
 }
 
 func (ss *SortedSet) Add(score float64, member string) int {
-	// Check if member exists.
+	if member == "" {
+		return 0
+	}
+
+	oldScore, exists := ss.MemberScore[member]
+	if exists {
+		if oldScore == score {
+			return 0 // No change needed
+		}
+		// Remove old entry using score (efficient)
+		ss.Index.RemoveByScore(oldScore, member)
+		ss.Index.Add(score, member)
+		ss.MemberScore[member] = score
+		return 0
+	}
+
 	result := ss.Index.Add(score, member)
-	ss.MemberScore[member] = score
+	if result == 1 {
+		ss.MemberScore[member] = score
+	}
 	return result
 }
 
@@ -40,4 +57,22 @@ func (ss *SortedSet) GetScore(member string) (float64, bool) {
 
 func (ss *SortedSet) GetRank(member string) int {
 	return ss.Index.GetRank(member)
+}
+
+func (ss *SortedSet) Remove(member string) int {
+	if member == "" {
+		return 0
+	}
+
+	score, exists := ss.MemberScore[member]
+	if !exists {
+		return 0
+	}
+
+	// Use score for efficient removal
+	result := ss.Index.RemoveByScore(score, member)
+	if result == 1 {
+		delete(ss.MemberScore, member)
+	}
+	return result
 }

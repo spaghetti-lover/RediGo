@@ -66,25 +66,9 @@ func NewSkipListIndex(maxLevel int) OrderedIndex {
 
 // Add implements OrderedIndex.Add
 func (sl *SkipListIndex) Add(score float64, member string) int {
-	if member == "" {
-		return 0
-	}
-
-	// Check if member already exists
-	existingNode := sl.findMember(member)
-	if existingNode != nil {
-		if existingNode.score == score {
-			return 0 // Same score, no change
-		}
-		// Update score - delete and re-insert
-		sl.deleteByNode(existingNode)
-		sl.insert(score, member)
-		return 0 // Updated existing member
-	}
-
-	// Insert new member
+	// Simplified - just insert, let SortedSet handle duplicates
 	sl.insert(score, member)
-	return 1 // Added new member
+	return 1
 }
 
 // GetRank implements OrderedIndex.GetRank
@@ -232,4 +216,27 @@ func (sl *SkipListIndex) deleteNode(x *SkiplistNode, update [SkiplistMaxLevel]*S
 		sl.level--
 	}
 	sl.length--
+}
+
+// Remove removes member with known score instead of remove member only (more efficient - O(log N))
+func (sl *SkipListIndex) RemoveByScore(score float64, member string) int {
+	update := [SkiplistMaxLevel]*SkiplistNode{}
+	x := sl.head
+
+	// Find the node to delete
+	for i := sl.level - 1; i >= 0; i-- {
+		for x.levels[i].forward != nil && (x.levels[i].forward.score < score ||
+			(x.levels[i].forward.score == score &&
+				strings.Compare(x.levels[i].forward.ele, member) == -1)) {
+			x = x.levels[i].forward
+		}
+		update[i] = x
+	}
+
+	x = x.levels[0].forward
+	if x != nil && x.score == score && x.ele == member {
+		sl.deleteNode(x, update)
+		return 1
+	}
+	return 0
 }

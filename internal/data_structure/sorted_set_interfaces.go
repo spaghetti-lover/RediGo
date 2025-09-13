@@ -9,6 +9,10 @@ type OrderedIndex interface {
 	// GetRank returns the rank (0-based index) of a member
 	// Return -1 if member not found
 	GetRank(member string) int
+
+	// RemoveByScore removes an item by its score and member with O(log N) complexity.
+	// Returns 1 if member was removed, 0 if not found
+	RemoveByScore(score float64, member string) int
 }
 
 // IndexType represents the type of index to create
