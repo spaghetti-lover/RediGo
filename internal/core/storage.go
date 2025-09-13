@@ -1,13 +1,20 @@
 package core
 
-import "github.com/spaghetti-lover/multithread-redis/internal/data_structure"
+import (
+	"github.com/spaghetti-lover/multithread-redis/internal/data_structure/count_table"
+	"github.com/spaghetti-lover/multithread-redis/internal/data_structure/hash_table"
+	"github.com/spaghetti-lover/multithread-redis/internal/data_structure/simple_set"
+	"github.com/spaghetti-lover/multithread-redis/internal/data_structure/sorted_set"
+)
 
-var dictStore *data_structure.Dict
-var zsetStore map[string]*data_structure.SortedSet
-var setStore map[string]*data_structure.SimpleSet
+var dictStore *hash_table.Dict
+var zsetStore map[string]*sorted_set.SortedSet
+var setStore map[string]*simple_set.SimpleSet
+var cmsStore map[string]*count_table.CMS
 
 func init() {
-	dictStore = data_structure.CreateDict()
-	zsetStore = make(map[string]*data_structure.SortedSet)
-	setStore = make(map[string]*data_structure.SimpleSet)
+	dictStore = hash_table.CreateDict()
+	zsetStore = make(map[string]*sorted_set.SortedSet)
+	setStore = make(map[string]*simple_set.SimpleSet)
+	cmsStore = make(map[string]*count_table.CMS)
 }

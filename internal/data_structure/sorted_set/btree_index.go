@@ -1,4 +1,4 @@
-package data_structure
+package sorted_set
 
 // BTreeNode represents a node in the B+ Tree
 type BTreeNode struct {

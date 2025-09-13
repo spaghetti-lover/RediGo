@@ -1,15 +1,14 @@
-package tests
+package sorted_set
 
 import (
 	"testing"
 
-	"github.com/spaghetti-lover/multithread-redis/internal/data_structure"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSkipListIndex_Add(t *testing.T) {
-	ss, err := data_structure.NewSortedSet(data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeSkipList,
+	ss, err := NewSortedSet(IndexConfig{
+		Type:   IndexTypeSkipList,
 		Degree: 16,
 	})
 	if err != nil {
@@ -50,7 +49,7 @@ func TestSkipListIndex_Add(t *testing.T) {
 }
 
 func TestSkipListIndex_GetRank(t *testing.T) {
-	skiplist := data_structure.NewSkipListIndex(16)
+	skiplist := NewSkipListIndex(16)
 
 	// Add test data in non-sorted order
 	skiplist.Add(30.0, "member3")
@@ -98,7 +97,7 @@ func TestSkipListIndex_GetRank(t *testing.T) {
 }
 
 func TestSkipListIndex_EmptySet(t *testing.T) {
-	skiplist := data_structure.NewSkipListIndex(16)
+	skiplist := NewSkipListIndex(16)
 
 	// Test operations on empty skiplist
 	rank := skiplist.GetRank("anything")
@@ -106,7 +105,7 @@ func TestSkipListIndex_EmptySet(t *testing.T) {
 }
 
 func TestSkipListIndex_SameScoreLexicographicOrder(t *testing.T) {
-	skiplist := data_structure.NewSkipListIndex(16)
+	skiplist := NewSkipListIndex(16)
 
 	// Add members with same score
 	skiplist.Add(10.0, "zebra")
@@ -125,7 +124,7 @@ func TestSkipListIndex_SameScoreLexicographicOrder(t *testing.T) {
 }
 
 func TestSkipListIndex_Integration(t *testing.T) {
-	skiplist := data_structure.NewSkipListIndex(16)
+	skiplist := NewSkipListIndex(16)
 
 	// Add multiple members
 	members := []struct {

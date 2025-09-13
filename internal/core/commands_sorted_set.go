@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/spaghetti-lover/multithread-redis/internal/constant"
-	"github.com/spaghetti-lover/multithread-redis/internal/data_structure"
+	"github.com/spaghetti-lover/multithread-redis/internal/data_structure/sorted_set"
 )
 
 func cmdZADD(args []string) []byte {
@@ -23,13 +23,13 @@ func cmdZADD(args []string) []byte {
 
 	zset, exist := zsetStore[key]
 	if !exist {
-		config := data_structure.IndexConfig{
-			Type:   data_structure.IndexTypeBTree,
+		config := sorted_set.IndexConfig{
+			Type:   sorted_set.IndexTypeBTree,
 			Degree: constant.DefaultBPlusTreeDegree,
 		}
 
 		var err error
-		zset, err = data_structure.NewSortedSet(config)
+		zset, err = sorted_set.NewSortedSet(config)
 		if err != nil {
 			return Encode(errors.New("(error) Can not initialize sorted set: "+err.Error()), false)
 		}

@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 
-	"github.com/spaghetti-lover/multithread-redis/internal/data_structure"
+	data_structure "github.com/spaghetti-lover/multithread-redis/internal/data_structure/simple_set"
 )
 
 func cmdSADD(args []string) []byte {

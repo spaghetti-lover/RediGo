@@ -1,18 +1,17 @@
-package tests
+package sorted_set
 
 import (
 	"testing"
 
-	"github.com/spaghetti-lover/multithread-redis/internal/data_structure"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSortedSet_Add(t *testing.T) {
-	config := data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeBTree,
+	config := IndexConfig{
+		Type:   IndexTypeBTree,
 		Degree: 4,
 	}
-	ss, err := data_structure.NewSortedSet(config)
+	ss, err := NewSortedSet(config)
 	assert.NoError(t, err)
 
 	// Test adding new members
@@ -46,11 +45,11 @@ func TestSortedSet_Add(t *testing.T) {
 }
 
 func TestSortedSet_GetScore(t *testing.T) {
-	config := data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeBTree,
+	config := IndexConfig{
+		Type:   IndexTypeBTree,
 		Degree: 4,
 	}
-	ss, err := data_structure.NewSortedSet(config)
+	ss, err := NewSortedSet(config)
 	assert.NoError(t, err)
 
 	// Add test data
@@ -89,11 +88,11 @@ func TestSortedSet_GetScore(t *testing.T) {
 }
 
 func TestSortedSet_GetRank(t *testing.T) {
-	config := data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeBTree,
+	config := IndexConfig{
+		Type:   IndexTypeBTree,
 		Degree: 4,
 	}
-	ss, err := data_structure.NewSortedSet(config)
+	ss, err := NewSortedSet(config)
 	assert.NoError(t, err)
 
 	// Add test data in non-sorted order
@@ -142,11 +141,11 @@ func TestSortedSet_GetRank(t *testing.T) {
 }
 
 func TestSortedSet_EmptySet(t *testing.T) {
-	config := data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeBTree,
+	config := IndexConfig{
+		Type:   IndexTypeBTree,
 		Degree: 4,
 	}
-	ss, err := data_structure.NewSortedSet(config)
+	ss, err := NewSortedSet(config)
 	assert.NoError(t, err)
 
 	// Test operations on empty set
@@ -159,11 +158,11 @@ func TestSortedSet_EmptySet(t *testing.T) {
 }
 
 func TestSortedSet_SameScoreLexicographicOrder(t *testing.T) {
-	config := data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeBTree,
+	config := IndexConfig{
+		Type:   IndexTypeBTree,
 		Degree: 4,
 	}
-	ss, err := data_structure.NewSortedSet(config)
+	ss, err := NewSortedSet(config)
 	assert.NoError(t, err)
 
 	// Add members with same score
@@ -196,11 +195,11 @@ func TestSortedSet_SameScoreLexicographicOrder(t *testing.T) {
 }
 
 func TestSortedSet_Integration(t *testing.T) {
-	config := data_structure.IndexConfig{
-		Type:   data_structure.IndexTypeBTree,
+	config := IndexConfig{
+		Type:   IndexTypeBTree,
 		Degree: 4,
 	}
-	ss, err := data_structure.NewSortedSet(config)
+	ss, err := NewSortedSet(config)
 	assert.NoError(t, err)
 
 	// Add multiple members

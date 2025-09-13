@@ -1,4 +1,4 @@
-package data_structure
+package sorted_set
 
 // OrderedIndex defines the interface for ordered data structures
 type OrderedIndex interface {

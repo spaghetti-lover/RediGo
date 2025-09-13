@@ -1,4 +1,4 @@
-package data_structure
+package sorted_set
 
 import (
 	"math/rand"
