@@ -1,6 +1,20 @@
 # Test the application
 test:
+	go mod tidy
 	go test ./... -v
+
+# Test with vendor (slower but reproducible)
+test-vendor:
+	go mod tidy
+	go mod vendor
+	go test ./... -v -mod=vendor
+
+# Test for CI
+test-ci:
+	go mod download
+	go mod verify
+	go test ./... -v
+
 # Development
 dev:
 	docker-compose up --build
