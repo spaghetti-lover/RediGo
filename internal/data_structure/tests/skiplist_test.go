@@ -8,35 +8,44 @@ import (
 )
 
 func TestSkipListIndex_Add(t *testing.T) {
-	skiplist := data_structure.NewSkipListIndex(16)
+	ss, err := data_structure.NewSortedSet(data_structure.IndexConfig{
+		Type:   data_structure.IndexTypeSkipList,
+		Degree: 16,
+	})
+	if err != nil {
+		t.Fatal("Failed to create SortedSet with SkipListIndex:", err)
+	}
+	assert.NoError(t, err)
+	assert.NotNil(t, ss)
+	assert.NotNil(t, ss)
 
 	// Test adding new members
-	result := skiplist.Add(10.0, "member1")
+	result := ss.Add(10.0, "member1")
 	assert.EqualValues(t, 1, result)
 
-	result = skiplist.Add(20.0, "member2")
+	result = ss.Add(20.0, "member2")
 	assert.EqualValues(t, 1, result)
 
-	result = skiplist.Add(30.0, "member3")
+	result = ss.Add(30.0, "member3")
 	assert.EqualValues(t, 1, result)
 
 	// Test updating existing member
-	result = skiplist.Add(15.0, "member1")
+	result = ss.Add(15.0, "member1")
 	assert.EqualValues(t, 0, result) // Should return 0 for update
 
 	// Test adding with same score
-	result = skiplist.Add(20.0, "member4")
+	result = ss.Add(20.0, "member4")
 	assert.EqualValues(t, 1, result)
 
 	// Test edge cases
-	result = skiplist.Add(0.0, "zero")
+	result = ss.Add(0.0, "zero")
 	assert.EqualValues(t, 1, result)
 
-	result = skiplist.Add(-10.0, "negative")
+	result = ss.Add(-10.0, "negative")
 	assert.EqualValues(t, 1, result)
 
 	// Test empty member name
-	result = skiplist.Add(100.0, "")
+	result = ss.Add(100.0, "")
 	assert.EqualValues(t, 0, result) // Should handle empty string
 }
 
