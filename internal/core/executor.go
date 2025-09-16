@@ -117,6 +117,15 @@ func ExecuteAndResponse(cmd *Command, connFd int) error {
 		res = cmdSMEMBERS(cmd.Args)
 	case "SISMEMBER":
 		res = cmdSISMEMBER(cmd.Args)
+	// Count-min Sketch
+	case "CMS.INITBYDIM":
+		res = cmdCMSINITBYDIM(cmd.Args)
+	case "CMS.INITBYPROB":
+		res = cmdCMSINITBYPROB(cmd.Args)
+	case "CMS.INCRBY":
+		res = cmdCMSINCRBY(cmd.Args)
+	case "CMS.QUERY":
+		res = cmdCMSQUERY(cmd.Args)
 	case "HELP":
 		res = cmdHELP()
 	default:
