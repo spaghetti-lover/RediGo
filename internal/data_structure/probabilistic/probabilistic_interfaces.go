@@ -12,3 +12,8 @@ type FrequencyEstimator interface {
 	// Error if: invalid arguments, missing key, or wrong key type.
 	Count(item string) uint64
 }
+
+type MembershipTester interface {
+	Add(item string)
+	Exist(entry string) bool
+}
