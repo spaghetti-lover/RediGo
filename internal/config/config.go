@@ -14,6 +14,8 @@ var (
 	MaxKeyNumber   = getEnvAsInt("REDIS_MAX_KEY_NUMBER", 1000000)
 	EvictionRatio  = getEnvAsFloat("REDIS_EVICTION_RATIO", 0.1)
 	EvictionPolicy = getEnv("REDIS_EVICTION_POLICY", "allkeys-random")
+	EpoolMaxSize   = getEnvAsInt("REDIS_EPOOL_MAX_SIZE", 16)
+	EpoolLRUSampleSize = getEnvAsInt("REDIS_EPOOL_LRU_SAMPLE_SIZE", 5)
 )
 
 // HTTP Gateway configuration
