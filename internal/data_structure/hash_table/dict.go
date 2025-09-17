@@ -1,7 +1,10 @@
 package hash_table
 
 import (
+	"log"
 	"time"
+
+	"github.com/spaghetti-lover/multithread-redis/internal/config"
 )
 
 type Obj struct {
@@ -76,7 +79,32 @@ func (d *Dict) Get(k string) *Obj {
 }
 
 func (d *Dict) Set(k string, obj *Obj) {
+	if len(d.dictStore) >= config.MaxKeyNumber {
+		d.evict()
+	}
 	d.dictStore[k] = obj
+}
+
+func (d *Dict) evictRandom() {
+	evictCount := int64(config.EvictionRatio * float64(config.MaxKeyNumber))
+	log.Print("Trigger random eviction, evict count: ", evictCount)
+	for k := range d.dictStore {
+		d.Del(k)
+		evictCount--
+		if evictCount == 0 {
+			break
+		}
+	}
+}
+
+func (d *Dict) evict() {
+	switch config.EvictionPolicy {
+	case "allkeys-random":
+		d.evictRandom()
+	default:
+		d.evictRandom()
+		log.Printf("Warning: Unknown eviction policy %s, defaulting to allkeys-random", config.EvictionPolicy)
+	}
 }
 
 func (d *Dict) Del(k string) bool {

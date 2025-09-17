@@ -8,9 +8,12 @@ import (
 
 // Redis server configuration
 var (
-	Protocol      = getEnv("REDIS_PROTOCOL", "tcp")
-	Port          = getEnv("REDIS_PORT", ":6379")
-	MaxConnection = getEnvAsInt("REDIS_MAX_CONNECTION", 20000)
+	Protocol       = getEnv("REDIS_PROTOCOL", "tcp")
+	Port           = getEnv("REDIS_PORT", ":6379")
+	MaxConnection  = getEnvAsInt("REDIS_MAX_CONNECTION", 20000)
+	MaxKeyNumber   = getEnvAsInt("REDIS_MAX_KEY_NUMBER", 1000000)
+	EvictionRatio  = getEnvAsFloat("REDIS_EVICTION_RATIO", 0.1)
+	EvictionPolicy = getEnv("REDIS_EVICTION_POLICY", "allkeys-random")
 )
 
 // HTTP Gateway configuration
@@ -31,6 +34,16 @@ var (
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getEnvAsFloat(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
+			return floatValue
+		}
+		log.Printf("Warning: Invalid float value for %s: %s, using default: %f", key, value, defaultValue)
 	}
 	return defaultValue
 }
