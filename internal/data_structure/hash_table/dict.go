@@ -1,6 +1,8 @@
 package hash_table
 
-import "time"
+import (
+	"time"
+)
 
 type Obj struct {
 	Value interface{}
@@ -23,12 +25,24 @@ func (d *Dict) GetExpireDictStore() map[string]uint64 {
 	return d.expiredDictStore
 }
 
+func (d *Dict) GetDictStore() map[string]*Obj {
+	return d.dictStore
+}
+
+// Remove TTL of a key (like PERSIST)
+func (d *Dict) Persist(key string) {
+	delete(d.expiredDictStore, key)
+}
+
 func (d *Dict) NewObj(key string, value interface{}, ttlMs int64) *Obj {
 	obj := &Obj{
 		Value: value,
 	}
 	if ttlMs > 0 {
 		d.SetExpiry(key, ttlMs)
+	} else {
+		// Ensure old TTL is removed when overwriting without TTL. For example, SET key value EX 10 followed by SET key value
+		d.Persist(key)
 	}
 	return obj
 }
@@ -72,4 +86,35 @@ func (d *Dict) Del(k string) bool {
 		return true
 	}
 	return false
+}
+
+// ExpiringKeysCount returns number of keys that currently have a TTL and are not expired.
+// It does not clean up stale TTLs and expired keys.
+func (d *Dict) ExpiringKeysCount() int {
+	now := uint64(time.Now().UnixMilli())
+	count := 0
+	for _, exp := range d.expiredDictStore {
+		if exp > now {
+			count++
+		}
+	}
+	return count
+}
+
+// TLL_Avg returns average TTL of keys that currently have a TTL and are not expired.
+// It does not clean up stale TTLs and expired keys.
+func (d *Dict) TLL_Avg() uint64 {
+	now := uint64(time.Now().UnixMilli())
+	res := uint64(0)
+	cnt := uint64(0)
+	for _, exp := range d.expiredDictStore {
+		if exp > now {
+			res = res + (exp - now)
+			cnt++
+		}
+	}
+	if cnt == 0 {
+		return 0
+	}
+	return res / cnt
 }

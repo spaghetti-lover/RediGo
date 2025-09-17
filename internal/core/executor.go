@@ -126,6 +126,9 @@ func ExecuteAndResponse(cmd *Command, connFd int) error {
 		res = cmdCMSINCRBY(cmd.Args)
 	case "CMS.QUERY":
 		res = cmdCMSQUERY(cmd.Args)
+	// INFO
+	case "INFO":
+		res = cmdINFO(cmd.Args)
 	case "HELP":
 		res = cmdHELP()
 	default:
