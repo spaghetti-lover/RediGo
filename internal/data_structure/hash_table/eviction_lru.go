@@ -1,21 +1,22 @@
 package hash_table
 
 import (
+	"log"
 	"sort"
 
 	"github.com/spaghetti-lover/multithread-redis/internal/config"
 )
 
-type EvictionCandidate struct {
+type LruEvictionCandidate struct {
 	key            string
 	lastAccessTime uint32
 }
 
-type EvictionPool struct {
-	pool []*EvictionCandidate
+type LruEvictionPool struct {
+	pool []*LruEvictionCandidate
 }
 
-type ByLastAccessTime []*EvictionCandidate
+type ByLastAccessTime []*LruEvictionCandidate
 
 func (a ByLastAccessTime) Len() int {
 	return len(a)
@@ -31,8 +32,8 @@ func (a ByLastAccessTime) Less(i, j int) bool {
 
 // Push adds a new item to the pool, maintains the lastAccessTime accenting order (old items are on the left).
 // If pool size > EpoolMaxSize, removes the newest item.
-func (p *EvictionPool) Push(key string, lastAccessTime uint32) {
-	newItem := &EvictionCandidate{
+func (p *LruEvictionPool) Push(key string, lastAccessTime uint32) {
+	newItem := &LruEvictionCandidate{
 		key:            key,
 		lastAccessTime: lastAccessTime,
 	}
@@ -60,7 +61,7 @@ func (p *EvictionPool) Push(key string, lastAccessTime uint32) {
 }
 
 // Pop returns the oldest item in the pool
-func (p *EvictionPool) Pop() *EvictionCandidate {
+func (p *LruEvictionPool) Pop() *LruEvictionCandidate {
 	if len(p.pool) == 0 {
 		return nil
 	}
@@ -69,10 +70,37 @@ func (p *EvictionPool) Pop() *EvictionCandidate {
 	return oldestItem
 }
 
-func newEpool(size int) *EvictionPool {
-	return &EvictionPool{
-		pool: make([]*EvictionCandidate, size),
+func newEpool(size int) *LruEvictionPool {
+	return &LruEvictionPool{
+		pool: make([]*LruEvictionCandidate, size),
 	}
 }
 
-var ePool *EvictionPool = newEpool(0)
+func (d *Dict) populateEpool() {
+	remain := config.EpoolLRUSampleSize
+	for k := range d.dictStore {
+		ePool.Push(k, d.dictStore[k].LastAccessTime)
+		remain--
+		if remain == 0 {
+			break
+		}
+	}
+	log.Println("Epool:")
+	for _, item := range ePool.pool {
+		log.Println(item.key, item.lastAccessTime)
+	}
+}
+
+func (d *Dict) evictLru() {
+	d.populateEpool()
+	evictCount := int64(config.EvictionRatio * float64(config.MaxKeyNumber))
+	log.Print("Trigger LRU eviction, evict count: ", evictCount)
+	for i := 0; i < int(evictCount) && len(ePool.pool) > 0; i++ {
+		item := ePool.Pop()
+		if item != nil {
+			d.Del(item.key)
+		}
+	}
+}
+
+var ePool *LruEvictionPool = newEpool(0)

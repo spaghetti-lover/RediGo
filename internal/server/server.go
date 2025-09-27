@@ -4,6 +4,9 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
+	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -12,6 +15,8 @@ import (
 	"github.com/spaghetti-lover/multithread-redis/internal/core"
 	"github.com/spaghetti-lover/multithread-redis/internal/core/iomux"
 )
+
+var serverStatus int32 = constant.ServerStatusIdle
 
 func readCommand(fd int) (*core.Command, error) {
 	var buf = make([]byte, 512)
@@ -32,7 +37,8 @@ func readCommand(fd int) (*core.Command, error) {
 // 	return nil
 // }
 
-func RunIoMultiplexingServer() {
+func RunIoMultiplexingServer(wg *sync.WaitGroup) {
+	defer wg.Done()
 	log.Println("starting an I/O Multiplexing TCP server on", config.Port)
 	listener, err := net.Listen(config.Protocol, config.Port)
 	if err != nil {
@@ -70,11 +76,18 @@ func RunIoMultiplexingServer() {
 
 	var events = make([]iomux.Event, config.MaxConnection)
 	var lastActiveExpireExecTime = time.Now()
-	for {
+
+	for atomic.LoadInt32(&serverStatus) != constant.ServerStatusShutdown {
 		// check last execution time and call if it is more than 100ms ago.
 		if time.Now().After(lastActiveExpireExecTime.Add(constant.ActiveExpireFrequency)) {
-			core.ActiveDeleteExpiredKeys()
-			lastActiveExpireExecTime = time.Now()
+			if !atomic.CompareAndSwapInt32(&serverStatus, constant.ServerStatusIdle, constant.ServerStatusRunning) {
+				if atomic.LoadInt32(&serverStatus) == constant.ServerStatusShutdown {
+					return
+				}
+			}
+			core.ActiveDeleteExpiredKeys() //Busy
+			atomic.SwapInt32(&serverStatus, constant.ServerStatusIdle)
+			lastActiveExpireExecTime = time.Now() // Idle
 		}
 		// wait for file descriptors in the monitoring list to be ready for I/O
 		// it is a blocking call.
@@ -83,6 +96,13 @@ func RunIoMultiplexingServer() {
 			continue
 		}
 
+		if !atomic.CompareAndSwapInt32(&serverStatus, constant.ServerStatusIdle, constant.ServerStatusRunning) {
+			if atomic.LoadInt32(&serverStatus) == constant.ServerStatusShutdown {
+				return
+			}
+		}
+
+		//Busy
 		for i := 0; i < len(events); i++ {
 			if events[i].Fd == serverFd {
 				log.Printf("new client is trying to connect")
@@ -101,6 +121,11 @@ func RunIoMultiplexingServer() {
 					log.Fatal(err)
 				}
 			} else {
+				if atomic.LoadInt32(&serverStatus) == constant.ServerStatusShutdown {
+					return
+				}
+				// handle data from an existing connection
+				// read the command, execute it and write back the response.
 				cmd, err := readCommand(events[i].Fd)
 				if err != nil {
 					if err == io.EOF || err == syscall.ECONNRESET {
@@ -132,6 +157,20 @@ func RunIoMultiplexingServer() {
 					_ = syscall.Close(events[i].Fd)
 				}
 			}
+		}
+
+		//Idle
+		atomic.SwapInt32(&serverStatus, constant.ServerStatusIdle)
+	}
+}
+
+func WaitForSignal(wg *sync.WaitGroup, sigChan chan os.Signal) {
+	defer wg.Done()
+	<-sigChan
+	for {
+		if atomic.CompareAndSwapInt32(&serverStatus, constant.ServerStatusIdle, constant.ServerStatusShutdown) {
+			log.Println("Signal received, shutting down server...")
+			os.Exit(0)
 		}
 	}
 }

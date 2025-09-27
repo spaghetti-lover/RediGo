@@ -15,3 +15,7 @@ var DefaultBPlusTreeDegree = 4
 
 const BfDefaultInitCapacity = 100
 const BfDefaultErrRate = 0.01
+
+const ServerStatusIdle int32 = 0
+const ServerStatusShutdown int32 = 1
+const ServerStatusRunning int32 = 2
