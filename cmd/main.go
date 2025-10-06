@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -16,7 +17,16 @@ func main() {
 
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	wg.Add(2)
-	go server.RunIoMultiplexingServer(&wg)
-	go server.WaitForSignal(&wg, sigChan)
+
+	//Run single threaded server with epoll/kqueue
+	//go server.RunIoMultiplexingServer(&wg)
+
+	//Run multi-threaded server with epoll/kqueue
+	s := server.NewServer()
+	go s.Start(&wg)
+
+	go server.WaitForSignal(&wg, sigChan, s)
 	wg.Wait()
+
+	log.Println("Graceful shutdown complete")
 }

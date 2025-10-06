@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net"
-	"time"
 )
 
 func handleConnection(conn net.Conn) {
@@ -14,8 +13,6 @@ func handleConnection(conn net.Conn) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// process
-	time.Sleep(time.Second * 10)
 	// reply
 	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\nHello, world\r\n"))
 	conn.Close()

@@ -12,6 +12,6 @@ type Event struct {
 
 type IOMultiplexer interface {
 	Monitor(event Event) error
-	Check() ([]Event, error)
+	Wait() ([]Event, error)
 	Close() error
 }

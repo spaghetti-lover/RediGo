@@ -1,10 +1,13 @@
 package server
 
 import (
+	"context"
+	"hash/fnv"
 	"io"
 	"log"
 	"net"
 	"os"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -15,6 +18,152 @@ import (
 	"github.com/spaghetti-lover/multithread-redis/internal/core"
 	"github.com/spaghetti-lover/multithread-redis/internal/core/iomux"
 )
+
+type Server struct {
+	workers       []*core.Worker
+	ioHandlers    []*IOHandler
+	numWorkers    int
+	numIOHandlers int
+
+	// add listener to close it on shutdown
+	listener net.Listener
+
+	// For round-robin assigment of new connection to I/O handlers
+	nextIOHandler int
+}
+
+func (s *Server) getPartitionID(key string) int {
+	hasher := fnv.New32a()
+	hasher.Write([]byte(key))
+	return int(hasher.Sum32()) % s.numWorkers
+}
+
+func (s *Server) dispatch(task *core.Task) {
+	// Commands like PING etc., don't have a key.
+	// We can send them to any worker.
+	var key string
+	if len(task.Command.Args) > 0 {
+		key = task.Command.Args[0]
+	}
+	workerID := s.getPartitionID(key)
+	s.workers[workerID].TaskCh <- task
+}
+
+func NewServer() *Server {
+	numCores := runtime.NumCPU()
+	numIOHandlers := numCores / 3
+	numWorkers := numCores - numIOHandlers
+	log.Printf("Initializing server with %d workers and %d io handler\n", numWorkers, numIOHandlers)
+
+	s := &Server{
+		workers:       make([]*core.Worker, numWorkers),
+		ioHandlers:    make([]*IOHandler, numIOHandlers),
+		numWorkers:    numWorkers,
+		numIOHandlers: numIOHandlers,
+	}
+
+	for i := 0; i < numWorkers; i++ {
+		s.workers[i] = core.NewWorker(i, 1024)
+		s.workers[i].Start(context.Background())
+	}
+
+	for i := 0; i < numIOHandlers; i++ {
+		handler, err := NewIOHandler(i, s)
+		if err != nil {
+			log.Fatalf("Failed to create I/O handler %d: %v", i, err)
+		}
+		s.ioHandlers[i] = handler
+	}
+
+	return s
+}
+
+func (s *Server) Stop() {
+	log.Println("Stopping server and all workers...")
+
+	atomic.StoreInt32(&serverStatus, constant.ServerStatusShutdown)
+
+	// Close listener to stop Accept() accepting new connections
+	if s.listener != nil {
+		s.listener.Close()
+	}
+
+	for i, worker := range s.workers {
+		if worker != nil {
+			log.Printf("Stopping worker %d", i)
+			worker.Stop()
+		}
+	}
+
+	for i, handler := range s.ioHandlers {
+		if handler != nil {
+			log.Printf("Stopping I/O handler %d", i)
+			handler.Stop()
+		}
+	}
+}
+
+// func response(fd int, respCh <-chan []byte) {
+// 	res := <-respCh
+// 	syscall.Write(fd, res)
+// }
+
+func (s *Server) Start(wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	// Start I/O Handler event loops
+	for _, handler := range s.ioHandlers {
+		go handler.Run()
+	}
+
+	// Setup listener socket
+	listener, err := net.Listen(config.Protocol, config.Port)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s.listener = listener
+	defer listener.Close()
+
+	log.Printf("Server is listenning on %s", config.Port)
+
+	for {
+		if atomic.LoadInt32(&serverStatus) == constant.ServerStatusShutdown {
+			return
+		}
+
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Printf("Failed to accept connection: %v", err)
+			return
+		}
+
+		// get the file descriptor of the connection
+		tcpConn, ok := conn.(*net.TCPConn)
+		if !ok {
+			log.Println("Accepted connection is not a TCP connection")
+			conn.Close()
+			continue
+		}
+		connFile, err := tcpConn.File()
+		if err != nil {
+			log.Printf("Failed to get file from TCP connection: %v", err)
+			conn.Close()
+			continue
+		}
+		defer connFile.Close()
+		connFd := int(connFile.Fd())
+
+		// forward the new connection to an I/O handler in a round-robin manner
+		handler := s.ioHandlers[s.nextIOHandler%s.numIOHandlers]
+		s.nextIOHandler++
+
+		if err := handler.AddConn(connFd); err != nil {
+			log.Printf("Failed to add connection fd %d to I/O handler %d: %v", connFd, handler.id, err)
+			_ = syscall.Close(connFd)
+		}
+	}
+}
 
 var serverStatus int32 = constant.ServerStatusIdle
 
@@ -164,13 +313,17 @@ func RunIoMultiplexingServer(wg *sync.WaitGroup) {
 	}
 }
 
-func WaitForSignal(wg *sync.WaitGroup, sigChan chan os.Signal) {
+func WaitForSignal(wg *sync.WaitGroup, sigChan chan os.Signal, server *Server) {
 	defer wg.Done()
 	<-sigChan
-	for {
-		if atomic.CompareAndSwapInt32(&serverStatus, constant.ServerStatusIdle, constant.ServerStatusShutdown) {
-			log.Println("Signal received, shutting down server...")
-			os.Exit(0)
-		}
+
+	log.Println("Signal received, initiating graceful shutdown...")
+
+	// Stop server and all workers
+	if server != nil {
+		server.Stop()
 	}
+
+	// Set server status to shutdown
+	atomic.StoreInt32(&serverStatus, constant.ServerStatusShutdown)
 }

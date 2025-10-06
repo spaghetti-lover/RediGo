@@ -36,6 +36,13 @@ func (kq *KQueue) Monitor(event Event) error {
 	return err
 }
 
+func (kq *KQueue) Unmonitor(event Event) error {
+	kqEvent := event.toNative(syscall.EV_DELETE)
+	// Remove event.Fd from the monitoring list of kq.fd
+	_, err := syscall.Kevent(kq.fd, []syscall.Kevent_t{kqEvent}, nil, nil)
+	return err
+}
+
 func (kq *KQueue) Wait() ([]Event, error) {
 	n, err := syscall.Kevent(kq.fd, nil, kq.kqEvents, nil)
 	if err != nil {
