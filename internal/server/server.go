@@ -103,11 +103,6 @@ func (s *Server) Stop() {
 	}
 }
 
-// func response(fd int, respCh <-chan []byte) {
-// 	res := <-respCh
-// 	syscall.Write(fd, res)
-// }
-
 func (s *Server) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 

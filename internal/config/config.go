@@ -8,13 +8,13 @@ import (
 
 // Redis server configuration
 var (
-	Protocol       = getEnv("REDIS_PROTOCOL", "tcp")
-	Port           = getEnv("REDIS_PORT", ":6379")
-	MaxConnection  = getEnvAsInt("REDIS_MAX_CONNECTION", 20000)
-	MaxKeyNumber   = getEnvAsInt("REDIS_MAX_KEY_NUMBER", 1000000)
-	EvictionRatio  = getEnvAsFloat("REDIS_EVICTION_RATIO", 0.1)
-	EvictionPolicy = getEnv("REDIS_EVICTION_POLICY", "allkeys-random")
-	EpoolMaxSize   = getEnvAsInt("REDIS_EPOOL_MAX_SIZE", 16)
+	Protocol           = getEnv("REDIS_PROTOCOL", "tcp")
+	Port               = getEnv("REDIS_PORT", ":6379")
+	MaxConnection      = getEnvAsInt("REDIS_MAX_CONNECTION", 20000)
+	MaxKeyNumber       = getEnvAsInt("REDIS_MAX_KEY_NUMBER", 1000000)
+	EvictionRatio      = getEnvAsFloat("REDIS_EVICTION_RATIO", 0.1)
+	EvictionPolicy     = getEnv("REDIS_EVICTION_POLICY", "allkeys-random")
+	EpoolMaxSize       = getEnvAsInt("REDIS_EPOOL_MAX_SIZE", 16)
 	EpoolLRUSampleSize = getEnvAsInt("REDIS_EPOOL_LRU_SAMPLE_SIZE", 5)
 )
 
@@ -23,6 +23,11 @@ var (
 	HTTPPort         = getEnv("HTTP_PORT", ":8080")
 	HTTPReadTimeout  = getEnvAsInt("HTTP_READ_TIMEOUT", 15)
 	HTTPWriteTimeout = getEnvAsInt("HTTP_WRITE_TIMEOUT", 15)
+)
+
+// Listener number
+var (
+	ListenerNum = getEnvAsInt("LISTENER_NUM", 4)
 )
 
 // Gateway to Redis connection configuration

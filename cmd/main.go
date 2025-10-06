@@ -24,6 +24,7 @@ func main() {
 	//Run multi-threaded server with epoll/kqueue
 	s := server.NewServer()
 	go s.Start(&wg)
+	//go s.StartMultiListeners(&wg)
 
 	go server.WaitForSignal(&wg, sigChan, s)
 	wg.Wait()

@@ -36,6 +36,7 @@ func NewIOHandler(id int, server *Server) (*IOHandler, error) {
 	}, nil
 }
 
+// Add connection to the handler's epoll monitoring list
 func (h *IOHandler) AddConn(connFd int) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
