@@ -51,6 +51,22 @@ func (w *Worker) Stop() {
 	w.waitGroup.Wait()
 }
 
+func (w *Worker) cmdPING(args []string) []byte {
+	var res []byte
+
+	if len(args) > 1 {
+		return Encode(errors.New("ERR wrong number of arguments for 'ping' command"), false)
+	}
+
+	if len(args) == 0 {
+		res = Encode("PONG", true)
+	} else {
+		res = Encode(args[0], false)
+	}
+	return res
+
+}
+
 func (w *Worker) cmdSET(args []string) []byte {
 	if len(args) < 2 || len(args) == 3 || len(args) > 4 {
 		return Encode(errors.New("(error) ERR wrong number of arguments for 'SET' command"), false)
@@ -99,6 +115,8 @@ func (w *Worker) ExecuteAndResponse(task *Task) {
 		res = w.cmdSET(task.Command.Args)
 	case "GET":
 		res = w.cmdGET(task.Command.Args)
+	case "PING":
+		res = w.cmdPING(task.Command.Args)
 	default:
 		res = []byte("-CMD NOT FOUND\r\n")
 	}

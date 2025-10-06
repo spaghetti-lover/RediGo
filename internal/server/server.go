@@ -5,6 +5,7 @@ import (
 	"hash/fnv"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"runtime"
@@ -42,10 +43,13 @@ func (s *Server) dispatch(task *core.Task) {
 	// Commands like PING etc., don't have a key.
 	// We can send them to any worker.
 	var key string
+	var workerID int
 	if len(task.Command.Args) > 0 {
 		key = task.Command.Args[0]
+		workerID = s.getPartitionID(key)
+	} else {
+		workerID = rand.Intn(s.numWorkers)
 	}
-	workerID := s.getPartitionID(key)
 	s.workers[workerID].TaskCh <- task
 }
 
