@@ -19,7 +19,7 @@ type Task struct {
 type Worker struct {
 	id        int
 	dictStore *hash_table.Dict
-	TaskCh    chan *Task         // Receives tasks from the I/O goroutine
+	TaskCh    chan *Task         // Receives tasks from the I/O handler
 	ctx       context.Context    // Use context to manage goroutine
 	cancel    context.CancelFunc // Set `Context` object's internal state to `canceled`. It closes the `Done()` channel of that Context
 	waitGroup *sync.WaitGroup

@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"sync"
@@ -23,10 +25,15 @@ func main() {
 
 	//Run multi-threaded server with epoll/kqueue
 	s := server.NewServer()
-	go s.Start(&wg)
+	go s.StartSingleListener(&wg)
 	//go s.StartMultiListeners(&wg)
 
 	go server.WaitForSignal(&wg, sigChan, s)
+
+	// Expose the /debug/pprof endpoints on a separate goroutine
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	wg.Wait()
 
 	log.Println("Graceful shutdown complete")

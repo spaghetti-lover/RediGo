@@ -54,9 +54,9 @@ func (s *Server) dispatch(task *core.Task) {
 }
 
 func NewServer() *Server {
-	numCores := runtime.NumCPU()
-	numIOHandlers := numCores / 3
-	numWorkers := numCores - numIOHandlers
+	numCores := runtime.NumCPU()  // 8
+	numIOHandlers := numCores / 2 // 4
+	numWorkers := numCores / 2    // 4
 	log.Printf("Initializing server with %d workers and %d io handler\n", numWorkers, numIOHandlers)
 
 	s := &Server{
@@ -107,63 +107,6 @@ func (s *Server) Stop() {
 	}
 }
 
-func (s *Server) Start(wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	// Start I/O Handler event loops
-	for _, handler := range s.ioHandlers {
-		go handler.Run()
-	}
-
-	// Setup listener socket
-	listener, err := net.Listen(config.Protocol, config.Port)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.listener = listener
-	defer listener.Close()
-
-	log.Printf("Server is listenning on %s", config.Port)
-
-	for {
-		if atomic.LoadInt32(&serverStatus) == constant.ServerStatusShutdown {
-			return
-		}
-
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Printf("Failed to accept connection: %v", err)
-			return
-		}
-
-		// get the file descriptor of the connection
-		tcpConn, ok := conn.(*net.TCPConn)
-		if !ok {
-			log.Println("Accepted connection is not a TCP connection")
-			conn.Close()
-			continue
-		}
-		connFile, err := tcpConn.File()
-		if err != nil {
-			log.Printf("Failed to get file from TCP connection: %v", err)
-			conn.Close()
-			continue
-		}
-		defer connFile.Close()
-		connFd := int(connFile.Fd())
-
-		// forward the new connection to an I/O handler in a round-robin manner
-		handler := s.ioHandlers[s.nextIOHandler%s.numIOHandlers]
-		s.nextIOHandler++
-
-		if err := handler.AddConn(connFd); err != nil {
-			log.Printf("Failed to add connection fd %d to I/O handler %d: %v", connFd, handler.id, err)
-			_ = syscall.Close(connFd)
-		}
-	}
-}
-
 var serverStatus int32 = constant.ServerStatusIdle
 
 func readCommand(fd int) (*core.Command, error) {
@@ -176,6 +119,17 @@ func readCommand(fd int) (*core.Command, error) {
 		return nil, io.EOF
 	}
 	return core.ParseCmd(buf)
+}
+
+func readCommandConn(conn net.Conn) (*core.Command, error) {
+	var buf = make([]byte, 512)
+	// Use the Read method from the net.Conn interface
+	n, err := conn.Read(buf)
+	if err != nil {
+		return nil, err // This will properly handle io.EOF
+	}
+	return core.ParseCmd(buf[:n])
+
 }
 
 // func respond(data string, fd int) error {

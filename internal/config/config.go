@@ -27,7 +27,7 @@ var (
 
 // Listener number
 var (
-	ListenerNum = getEnvAsInt("LISTENER_NUM", 4)
+	ListenerNumber = getEnvAsInt("LISTENER_NUM", 4)
 )
 
 // Gateway to Redis connection configuration

@@ -25,50 +25,33 @@ func createReusablePortListener(network, addr string) (net.Listener, error) {
 
 func (s *Server) StartMultiListeners(wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	//Start all I/O handler event loops
+	// Start all I/O handler event loops
 	for _, handler := range s.ioHandlers {
 		go handler.Run()
 	}
 
-	for i := 0; i < config.ListenerNum; i++ {
+	for i := 0; i < config.ListenerNumber; i++ {
 		go func() {
 			listener, err := createReusablePortListener(config.Protocol, config.Port)
+			log.Printf("Listener %d started listening on %s", i, config.Port)
 			if err != nil {
 				log.Fatal(err)
 			}
 			defer listener.Close()
-
 			for {
 				conn, err := listener.Accept()
 				if err != nil {
-					log.Printf("Failed to accept connections: %v", err)
+					log.Printf("Failed to acccept connection: %v", err)
 					continue
 				}
 
-				tcpConn, ok := conn.(*net.TCPConn)
-				if !ok {
-					log.Println("Accepted connection is not a TCP connection")
-					conn.Close()
-					continue
-				}
-
-				connFile, err := tcpConn.File()
-				if err != nil {
-					log.Printf("Failed to get file desctiptor from TCP connection: %v", err)
-					conn.Close()
-					continue
-				}
-				connFd := int(connFile.Fd())
-
-				// forward the new connection to an I/O handler in a round-robin manner
 				handler := s.ioHandlers[s.nextIOHandler%s.numIOHandlers]
 				s.nextIOHandler++
 
-				if err := handler.AddConn(connFd); err != nil {
-					log.Printf("Failed to add connection fd %d to I/O handler %d: %v", connFd, handler.id, err)
-					_ = syscall.Close(connFd)
-
+				if err := handler.AddConn(conn); err != nil {
+					log.Printf("Failed to add connection to I/O handler %d: %v", handler.id, err)
+					// If adding fails, close the connection properly
+					conn.Close()
 				}
 			}
 		}()
