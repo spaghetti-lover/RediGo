@@ -25,6 +25,7 @@ func createReusablePortListener(network, addr string) (net.Listener, error) {
 
 func (s *Server) StartMultiListeners(wg *sync.WaitGroup) {
 	defer wg.Done()
+	log.Print("Starting multi-listener server...")
 	// Start all I/O handler event loops
 	for _, handler := range s.ioHandlers {
 		go handler.Run()
