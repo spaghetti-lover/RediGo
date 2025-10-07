@@ -19,10 +19,6 @@ test-ci:
 dev:
 	docker-compose up --build
 
-# Production (separate containers)
-prod:
-	docker-compose -f docker-compose.prod.yml up -d
-
 # Deployment (single container)
 deploy:
 	go mod tidy

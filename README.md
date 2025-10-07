@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <em>⚡ A Redis-like in-memory datastore built in Go, with focus on concurrency & caching ⚡</em>
+  <em>⚡ A Redis-like multithread in-memory datastore built in Go from scratch ⚡</em>
 </p>
 
 <div align="center">
@@ -31,12 +31,8 @@
 - [Installation](#installation)
   - [Requirements](#requirements)
   - [Clone the project](#clone-the-project)
-  - [Build from source](#build-from-source)
+  - [Usage](#usage)
 - [Features](#features)
-- [Usage](#usage)
-  - [Run the server locally](#run-the-server-locally)
-  - [Connect with redis-cli](#connect-with-redis-cli-or-any-resp-compatible-client)
-- [Config](#config)
 - [TODO](#todo)
 - [License](#license)
 
@@ -44,9 +40,12 @@
 
 ## Description
 
-This project is a from-scratch implementation of a Redis-like in-memory data store written in Go, focusing on system design, concurrency, and performance optimization.
+This project is a from-scratch implementation of a Redis-like in-memory data store written in Go, focusing on I/O Model, RESP protocol, core commands, data structures, caching, and concurrency model.
 
+- CLI:
 <img src="docs/demo.png" alt="Screenshot of demo" />
+<!-- - UI:
+  <img src="docs/ui.png" alt="Screenshot of UI" /> -->
 
 <a name="installation"></a>
 
@@ -56,7 +55,7 @@ This project is a from-scratch implementation of a Redis-like in-memory data sto
 
 ### Requirements
 
-- Go 1.22+
+- Go 1.24+
 - (Optional) Docker or Podman for containerized deployment
 
 <a name="clone-the-project"></a>
@@ -67,86 +66,80 @@ This project is a from-scratch implementation of a Redis-like in-memory data sto
 git clone https://github.com/spaghetti-lover/RediGo.git
 ```
 
-<a name="build-from-source"></a>
+<a name="usage"></a>
 
-### Build from source
+## Usage
+
+### Run the project
+
+- Run CLI
 
 ```bash
-# Build binary for your platform
-make build
+go mod tidy
+go run cmd/main.go
+```
 
-# Build for all major platforms
-make build-all
+- Run with Docker-compose
+
+```bash
+make dev
+```
+
+- Run with Docker (single container), useful for deployment
+
+```bash
+make deploy
+```
+
+### Connect with redis-cli (optional)
+
+```bash
+redis-cli -p 6379
+```
+
+### Benchmark
+
+```bash
+./redis/src/redis-benchmark -p 3000 -t set -n 1000000 -r 1000000
+
+./redis/src/redis-benchmark -n 1000000 -t get -c 500 -h localhost -p 3000 -r 1000000 --threads 3
 ```
 
 <a name="features"></a>
 
 ## Features
 
-Key features explored and implemented throughout the project:
+- [x] ⚡ Server models: Simple TCP server, Thread Pool, One thread per connection, I/O multiplexing (`epoll`, `kqueue`), Shared-nothing architecture
 
-1. ⚡ Networking: TCP server, I/O multiplexing (`epoll`, `kqueue`)
-2. 🔗 Protocol: Redis Serialization Protocol (RESP)
-3. 🛠️ Core Commands: `GET`, `SET`, `TTL`, `DEL`, auto key expiration
-4. 🔑 Set Operations: `SADD`, `SREM`, `SCARD`, `SMEMBERS`, `SISMEMBER`, `SRAND`, `SPOP`
-5. 📊 Probabilistic Data Structures: Count-Min Sketch, Bloom Filter
-6. 🧹 Caching: Eviction strategies with approximated LRU algorithm
-7. 🧵 Concurrency Model: Shared-nothing architecture, thread-per-shard design
+- [x] 🔗 Protocol: Redis Serialization Protocol (RESP)
 
-This repository demonstrates not only how Redis works internally but also how to design scalable, concurrent, and efficient distributed systems.
+- [x] 🛠️ Core Commands:
 
-<a name="usage"></a>
+  - [x] **Hash Map**: `GET`, `SET`, `TTL`, `DEL`, auto key expiration
+  - [x] **Simple Set**: `SADD`, `SREM`, `SMEMBERS`, `SISMEMBER`
+  - [x] **Sorted Set**: `ZADD`, `ZSCORE`, `ZRANK` (with both skip list and B+ Tree)
+  - [x] **Count-min Sketch**: `CMS.INCRBY`, `CMS.QUERY`, `CMS.INITBYDIM`
+  - [x] **Bloom Filter**: `BF.ADD`, `BF.EXISTS`, `BF.RESERVE`
 
-## Usage
+- [x] 🔑 Passive, Active expired key deletion
 
-<a name="run-the-server-locally"></a>
+- [x] 🧹 Caching: Random, approximated LRU, approximated LFU
 
-### Run the server locally
-
-```bash
-./redis-server
-```
-
-<a name="connect-with-redis-cli-or-any-resp-compatible-client"></a>
-
-### Connect with redis-cli or any RESP-compatible client
-
-```bash
-redis-cli -p 6379
-```
-
-Example:
-
-```bash
-SET key "Hello"
-GET key
-```
-
-<a name="config"></a>
-
-## Config
-
-| Argument            | Description                                    | Default |
-| ------------------- | ---------------------------------------------- | ------- |
-| `--port`            | Port to run the Redis server on                | `6379`  |
-| `--shards`          | Number of shards (thread-per-shard model)      | `4`     |
-| `--max-memory`      | Maximum memory before eviction starts          | `256MB` |
-| `--eviction-policy` | Eviction policy (`approx-lru`, `random`, etc.) | `lru`   |
+- [x] 🧵 Graceful shutdown and connection handling
 
 <a name="todo"></a>
 
 ## TODO
 
-- [x] Implement RESP parser
-- [x] Basic commands (`GET`, `SET`, `DEL`, `TTL`)
-- [x] Set operations (`SADD`, `SREM`, …)
-- [x] Count-Min Sketch
-- [x] Bloom Filter
-- [x] Approximated LRU
-- [ ] Implement EXPIRE, DEL, EXISTS command
-- [ ] Cluster mode (multi-node)
-- [ ] Persistence (RDB / AOF)
-- [ ] Pub/Sub
+- [ ] Implement server model io_uring (Linux)
+- [ ] [Geospatial](https://redis.io/docs/latest/develop/data-types/geospatial/)
+- [ ] List
+- [ ] Bitmap
+- [ ] HyperLogLog
+- [ ] Queue
+- [ ] [Pipeline](https://redis.io/docs/latest/develop/using-commands/pipelining/)
+- [ ] Authentication
+- [ ] Persistence: RDB, AOF
 
 <a name="license"></a>
 
